@@ -3,6 +3,8 @@ package com.luizfilipe.course.services;
 import java.util.List;
 import java.util.Optional;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -22,12 +24,12 @@ public class UserService {
 	public List<User> findAll() {
 		return repository.findAll();
 	}
-	
+
 	public User findById(Long id) {
 		Optional<User> obj = repository.findById(id);
 		return obj.orElseThrow(() -> new ResourceNotFoundException(id));
 	}
-	
+
 	public User insert(User obj) {
 		return repository.save(obj);
 	}
@@ -35,20 +37,18 @@ public class UserService {
 	public void delete(Long id) {
 		try {
 			repository.deleteById(id);
-		}
-		catch(EmptyResultDataAccessException e) {
+		} catch (EmptyResultDataAccessException e) {
 			throw new ResourceNotFoundException(id);
-		}
-		catch(DataIntegrityViolationException e) {
+		} catch (DataIntegrityViolationException e) {
 			throw new DatabaseException(e.getMessage());
 		}
-		
+
 	}
-	
+
 	public User update(Long id, User obj) {
-		Optional<User> entity = repository.findById(id);
-		updateData(entity.get(), obj);
-		return repository.save(entity.get());
+			Optional<User> entity = repository.findById(id);
+			updateData(entity.orElseThrow(() -> new ResourceNotFoundException(id)) , obj);
+			return repository.save(entity.orElseThrow(() -> new ResourceNotFoundException(id)));
 	}
 
 	private void updateData(User entity, User obj) {
@@ -56,5 +56,5 @@ public class UserService {
 		entity.setEmail(obj.getEmail());
 		entity.setPhone(obj.getPhone());
 	}
-	
+
 }
